@@ -18,6 +18,9 @@ RUN poetry config virtualenvs.create false \
 
 COPY . .
 
+# Copia o arquivo .env para dentro do container
+COPY .env .env
+
 EXPOSE 8000
 
 CMD ["poetry", "run", "python", "manage.py", "runserver", "0.0.0.0:8000"]
