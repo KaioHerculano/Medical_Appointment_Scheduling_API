@@ -17,7 +17,7 @@ services:
       context: .
       dockerfile: Dockerfile
     env_file:
-      - .env.dev
+      - .env.production
     entrypoint: ["/bin/sh", "./entrypoint.sh"]
     command: gunicorn app.wsgi:application --bind 0.0.0.0:8000
     volumes:
