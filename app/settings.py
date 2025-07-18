@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 # Definindo BASE_DIR e carregando variáveis do .env
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(os.path.join(BASE_DIR, '.env.env'))
+load_dotenv(os.path.join(BASE_DIR, '.env.dev'))
 
 # Segurança
 SECRET_KEY = os.getenv('SECRET_KEY')
