@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "Medical_Appointment_Scheduling_API"
 version = "0.1.0"
-description = "API Django para gestão de doutores"
+description = "API Django para gestão de consultas medicas"
 authors = ["Kaio Herculano <kaioherculano12@gmail.com>"]
 license = "MIT"
 readme = "README.md"
