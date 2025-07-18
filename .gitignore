@@ -3,3 +3,4 @@ venv
 .env.production
 .env.dev
 db.sqlite3
+staticfiles
