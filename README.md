@@ -23,80 +23,47 @@ API desenvolvida com Django e Django Rest Framework para gestão de doutores e a
 
 ## ⚙️ Setup e Instalação
 
-Existem duas maneiras de executar o projeto: via Docker (recomendado) ou configurando um ambiente local.
+O projeto é projetado para ser executado com Docker, garantindo consistência entre os ambientes.
 
-### 1. Rodando com Docker (Recomendado)
-
-Este método garante um ambiente padronizado e isolado, idêntico ao de produção.
-
-**Pré-requisitos:**
+### Pré-requisitos
 - Docker
 - Docker Compose
 
-**Passos:**
+### Passos para Execução
+
 1. **Clone o repositório:**
    ```bash
    git clone [https://github.com/seu-usuario/Medical_Appointment_Scheduling_API.git](https://github.com/seu-usuario/Medical_Appointment_Scheduling_API.git)
    cd Medical_Appointment_Scheduling_API
    ```
 
-2. **Crie o arquivo de ambiente:**
-   Use o arquivo `.env.dev` como base para o ambiente de desenvolvimento.
-   ```bash
-   cp .env.dev .env
-   ```
+2. **Configure o Ambiente:**
+    - **Para usar PostgreSQL (padrão):** Copie o arquivo de configuração de desenvolvimento. As variáveis neste arquivo já estão configuradas para o serviço do PostgreSQL no `docker-compose`.
+      ```bash
+      cp .env.dev .env
+      ```
+    - **(Opcional) Para usar SQLite:** Se desejar rodar com um banco de dados `db.sqlite3` local, você precisará alterar o arquivo `settings.py` para que o Django utilize a configuração de banco de dados nomeada `'dev'`.
 
-3. **Construa e inicie os contêineres:**
+3. **Inicie a Aplicação:**
+   O script de `entrypoint` irá executar as migrações do banco de dados (PostgreSQL ou SQLite, dependendo da sua configuração) automaticamente.
    ```bash
    docker-compose up -d --build
    ```
    A aplicação estará disponível em `http://localhost:8000`.
 
-4. **Execute as migrações do banco de dados:**
-   ```bash
-   docker-compose exec web python manage.py migrate
-   ```
-
-5. **Crie um superusuário (Opcional):**
+4. **Crie um Superusuário (Opcional):**
    Este comando permite criar um usuário administrador para acessar o Django Admin.
    ```bash
    docker-compose exec web python manage.py createsuperuser
    ```
 
-### 2. Rodando Localmente
-
-1. **Clone o repositório** e instale os pré-requisitos (Python 3.11+, Poetry, PostgreSQL).
-
-2. **Instale as dependências:**
-   ```bash
-   poetry install
-   ```
-
-3. **Ative o ambiente virtual:**
-   ```bash
-   poetry shell
-   ```
-
-4. **Configure o `.env`** com as credenciais do seu banco de dados local.
-
-5. **Execute as migrações e inicie o servidor:**
-   ```bash
-   python manage.py migrate
-   python manage.py runserver
-   ```
-
 ## ✅ Execução dos Testes
 
-Os testes foram construídos utilizando a classe `APITestCase` do Django REST Framework para simular requisições à API.
+Os testes foram construídos utilizando a classe `APITestCase` do Django REST Framework e são executados dentro do ambiente Docker para garantir consistência.
 
--   **Para rodar os testes com Docker:**
+-   **Para rodar a suíte de testes:**
     ```bash
     docker-compose exec web poetry run pytest
-    ```
-
--   **Para rodar os testes localmente:**
-    ```bash
-    poetry run pytest
     ```
 
 ## 🧠 Decisões Técnicas
@@ -104,7 +71,6 @@ Os testes foram construídos utilizando a classe `APITestCase` do Django REST Fr
 -   **Docker & Docker Compose:** Escolhidos para criar um ambiente padronizado e reprodutível, eliminando inconsistências entre desenvolvimento e produção e simplificando o setup do projeto.
 -   **Gunicorn:** Utilizado como servidor WSGI de produção por ser robusto e performático, gerenciando múltiplos processos para lidar com requisições concorrentes, algo que o servidor de desenvolvimento do Django não suporta.
 -   **Poetry:** Adotado para o gerenciamento de dependências e ambientes virtuais, por garantir a resolução de dependências de forma determinística e facilitar a separação entre pacotes de desenvolvimento e produção.
--   **GitHub Actions:** Selecionado para CI/CD pela sua integração nativa com o repositório, permitindo automatizar os processos de teste e deploy de forma segura e eficiente.
 
 ## 📝 Histórico do Desafio
 
