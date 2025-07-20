@@ -33,7 +33,7 @@ O projeto é projetado para ser executado com Docker, garantindo consistência e
 
 1. **Clone o repositório:**
    ```bash
-   git clone [https://github.com/seu-usuario/Medical_Appointment_Scheduling_API.git](https://github.com/seu-usuario/Medical_Appointment_Scheduling_API.git)
+   git clone https://github.com/seu-usuario/Medical_Appointment_Scheduling_API.git
    cd Medical_Appointment_Scheduling_API
    ```
 
