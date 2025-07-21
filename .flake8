@@ -9,7 +9,7 @@ exclude =
     .env.production,
     manage.py,
     entrypoint.sh
-max-line-length = 88
+max-line-length = 120
 ignore =
     E203,
     W503
