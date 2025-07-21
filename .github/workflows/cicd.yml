@@ -13,12 +13,11 @@ jobs:
         with:
           python-version: '3.11'
 
-      # OTIMIZAÇÃO: Adiciona cache para as dependências do Poetry
       - name: Cache Poetry dependencies
         uses: actions/cache@v4
         with:
           path: ~/.local
-          key: poetry-1.8.2-0
+          key: poetry-1.8.2-${{ hashFiles('**/poetry.lock') }}-${{ github.run_id }}
 
       - name: Install Poetry
         uses: snok/install-poetry@v1
@@ -31,7 +30,7 @@ jobs:
         run: poetry install --no-root
 
       - name: Run flake8
-        run: poetry run flake8 .
+        run: poetry run flake8 . --config=.flake8
 
       - name: Run black
         run: poetry run black --check .
@@ -40,7 +39,6 @@ jobs:
         run: poetry run isort --check-only .
 
   test:
-    # OTIMIZAÇÃO: Faz o teste depender do lint. Só roda se o lint passar.
     needs: lint
     runs-on: ubuntu-latest
     services:
@@ -56,6 +54,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+
     env:
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
       DEBUG: ${{ github.ref == 'refs/heads/dev' }}
@@ -73,12 +72,11 @@ jobs:
         with:
           python-version: '3.11'
       
-      # OTIMIZAÇÃO: Reutiliza o mesmo cache do job de lint
       - name: Cache Poetry dependencies
         uses: actions/cache@v4
         with:
           path: ~/.local
-          key: poetry-1.8.2-0
+          key: poetry-1.8.2-${{ hashFiles('**/poetry.lock') }}-${{ github.run_id }}
 
       - name: Install Poetry
         uses: snok/install-poetry@v1
@@ -90,7 +88,12 @@ jobs:
       - name: Install dependencies
         run: poetry install --no-root
 
-      # CORREÇÃO: Adiciona o passo de migrate antes de rodar os testes
+      - name: Wait for PostgreSQL
+        run: |
+          until pg_isready -h localhost -p 5432; do
+            echo "Waiting for postgres..."; sleep 2;
+          done
+
       - name: Run migrations
         run: poetry run python manage.py migrate
 
@@ -108,7 +111,7 @@ jobs:
 
     steps:
       - name: Deploy to server
-        uses: appleboy/ssh-action@master # OTIMIZAÇÃO: Usando uma action para simplificar o SSH
+        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
