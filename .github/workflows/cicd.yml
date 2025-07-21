@@ -8,6 +8,20 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: ${{ github.ref == 'refs/heads/main' && secrets.POSTGRES_DB_PROD || secrets.POSTGRES_DB_DEV }}
+          POSTGRES_USER: ${{ github.ref == 'refs/heads/main' && secrets.POSTGRES_USER_PROD || secrets.POSTGRES_USER_DEV }}
+          POSTGRES_PASSWORD: ${{ github.ref == 'refs/heads/main' && secrets.POSTGRES_PASSWORD_PROD || secrets.POSTGRES_PASSWORD_DEV }}
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -35,19 +49,6 @@ jobs:
       - name: Install dependencies
         run: poetry install --no-interaction --no-root
 
-      - name: Selecionar secrets do banco por branch
-        id: db-env
-        run: |
-          if [ "${GITHUB_REF##*/}" = "main" ]; then
-            echo "POSTGRES_DB=${{ secrets.POSTGRES_DB_PROD }}" >> $GITHUB_OUTPUT
-            echo "POSTGRES_USER=${{ secrets.POSTGRES_USER_PROD }}" >> $GITHUB_OUTPUT
-            echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD_PROD }}" >> $GITHUB_OUTPUT
-          else
-            echo "POSTGRES_DB=${{ secrets.POSTGRES_DB_DEV }}" >> $GITHUB_OUTPUT
-            echo "POSTGRES_USER=${{ secrets.POSTGRES_USER_DEV }}" >> $GITHUB_OUTPUT
-            echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD_DEV }}" >> $GITHUB_OUTPUT
-          fi
-
       # --- LINTING ---
       - name: Run flake8
         run: poetry run flake8 app/ authentication/ consultations/ doctors/
@@ -64,26 +65,12 @@ jobs:
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           DEBUG: ${{ github.ref == 'refs/heads/dev' }}
           ALLOWED_HOSTS: ${{ secrets.ALLOWED_HOSTS }}
-          POSTGRES_DB: ${{ steps.db-env.outputs.POSTGRES_DB }}
-          POSTGRES_USER: ${{ steps.db-env.outputs.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ steps.db-env.outputs.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ github.ref == 'refs/heads/main' && secrets.POSTGRES_DB_PROD || secrets.POSTGRES_DB_DEV }}
+          POSTGRES_USER: ${{ github.ref == 'refs/heads/main' && secrets.POSTGRES_USER_PROD || secrets.POSTGRES_USER_DEV }}
+          POSTGRES_PASSWORD: ${{ github.ref == 'refs/heads/main' && secrets.POSTGRES_PASSWORD_PROD || secrets.POSTGRES_PASSWORD_DEV }}
           POSTGRES_HOST: localhost
           POSTGRES_PORT: 5432
         run: poetry run python manage.py test
-
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_DB: ${{ steps.db-env.outputs.POSTGRES_DB }}
-          POSTGRES_USER: ${{ steps.db-env.outputs.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ steps.db-env.outputs.POSTGRES_PASSWORD }}
-        ports: ['5432:5432']
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
 
   deploy:
     needs: build
