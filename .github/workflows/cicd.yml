@@ -13,11 +13,22 @@ jobs:
         with:
           python-version: '3.11'
 
+      # OTIMIZAÇÃO: Adiciona cache para as dependências do Poetry
+      - name: Cache Poetry dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.local
+          key: poetry-1.8.2-0
+
       - name: Install Poetry
-        run: pip install poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.8.2
+          virtualenvs-create: true
+          virtualenvs-in-project: true
 
       - name: Install dependencies
-        run: poetry install
+        run: poetry install --no-root
 
       - name: Run flake8
         run: poetry run flake8 .
@@ -29,6 +40,8 @@ jobs:
         run: poetry run isort --check-only .
 
   test:
+    # OTIMIZAÇÃO: Faz o teste depender do lint. Só roda se o lint passar.
+    needs: lint
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -43,10 +56,9 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
     env:
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
-      DEBUG: ${{ github.ref == 'refs/heads/dev' && 'True' || 'False' }}
+      DEBUG: ${{ github.ref == 'refs/heads/dev' }}
       ALLOWED_HOSTS: ${{ secrets.ALLOWED_HOSTS }}
       POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
       POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
@@ -57,46 +69,57 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      
+      # OTIMIZAÇÃO: Reutiliza o mesmo cache do job de lint
+      - name: Cache Poetry dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.local
+          key: poetry-1.8.2-0
 
       - name: Install Poetry
-        run: pip install poetry
-
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.8.2
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+      
       - name: Install dependencies
-        run: poetry install
+        run: poetry install --no-root
 
-      - name: Run tests (without migrate, assuming docker-compose handles it)
+      # CORREÇÃO: Adiciona o passo de migrate antes de rodar os testes
+      - name: Run migrations
+        run: poetry run python manage.py migrate
+
+      - name: Run tests
         run: poetry run python manage.py test
 
   deploy:
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
-
     env:
       SSH_HOST: ${{ secrets.SSH_HOST }}
       SSH_USER: ${{ secrets.SSH_USER }}
       SSH_KEY: ${{ secrets.SSH_KEY }}
 
     steps:
-      - uses: actions/checkout@v4
-
       - name: Deploy to server
-        run: |
-          echo "$SSH_KEY" > key.pem
-          chmod 600 key.pem
-
-          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            DOCKER_COMPOSE_FILE="docker-compose.prod.yml"
-          else
-            DOCKER_COMPOSE_FILE="docker-compose.dev.yml"
-          fi
-
-          ssh -i "medical_appointment_dev_key.pem" ubuntu@ec2-54-91-138-117.compute-1.amazonaws.com "
-            cd Medical_Appointment_Scheduling_API &&
-            git pull origin ${{ github.ref#refs/heads/ }} &&
-            docker-compose -f \$DOCKER_COMPOSE_FILE up --build -d
-          "
+        uses: appleboy/ssh-action@master # OTIMIZAÇÃO: Usando uma action para simplificar o SSH
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+              DOCKER_COMPOSE_FILE="docker-compose.prod.yml"
+            else
+              DOCKER_COMPOSE_FILE="docker-compose.yml"
+            fi
+            
+            cd Medical_Appointment_Scheduling_API
+            git pull origin ${{ github.ref_name }}
+            docker-compose -f $DOCKER_COMPOSE_FILE up --build -d
