@@ -2,7 +2,6 @@ from rest_framework import permissions
 
 
 class GlobalDefaultPermission(permissions.BasePermission):
-
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
@@ -19,9 +18,9 @@ class GlobalDefaultPermission(permissions.BasePermission):
 
     def __get_model_permission_codename(self, method, view):
         try:
-            if hasattr(view, 'queryset') and view.queryset is not None:
+            if hasattr(view, "queryset") and view.queryset is not None:
                 model = view.queryset.model
-            elif hasattr(view, 'get_queryset'):
+            elif hasattr(view, "get_queryset"):
                 model = view.get_queryset().model
             else:
                 return None
@@ -31,18 +30,18 @@ class GlobalDefaultPermission(permissions.BasePermission):
             action = self.__get_action_suffix(method)
             if not action:
                 return None
-            return f'{app_label}.{action}_{model_name}'
+            return f"{app_label}.{action}_{model_name}"
         except AttributeError:
             return None
 
     def __get_action_suffix(self, method):
         method_actions = {
-            'GET': 'view',
-            'POST': 'add',
-            'PUT': 'change',
-            'PATCH': 'change',
-            'DELETE': 'delete',
-            'OPTIONS': 'view',
-            'HEAD': 'view',
+            "GET": "view",
+            "POST": "add",
+            "PUT": "change",
+            "PATCH": "change",
+            "DELETE": "delete",
+            "OPTIONS": "view",
+            "HEAD": "view",
         }
-        return method_actions.get(method, '')
+        return method_actions.get(method, "")
