@@ -12,9 +12,9 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_DB: ${{ github.ref == 'refs/heads/main' && secrets.POSTGRES_DB_PROD || secrets.POSTGRES_DB_DEV }}
-          POSTGRES_USER: ${{ github.ref == 'refs/heads/main' && secrets.POSTGRES_USER_PROD || secrets.POSTGRES_USER_DEV }}
-          POSTGRES_PASSWORD: ${{ github.ref == 'refs/heads/main' && secrets.POSTGRES_PASSWORD_PROD || secrets.POSTGRES_PASSWORD_DEV }}
+          POSTGRES_DB: ${{ github.ref_name == 'main' && secrets.POSTGRES_DB_PROD || secrets.POSTGRES_DB_DEV }}
+          POSTGRES_USER: ${{ github.ref_name == 'main' && secrets.POSTGRES_USER_PROD || secrets.POSTGRES_USER_DEV }}
+          POSTGRES_PASSWORD: ${{ github.ref_name == 'main' && secrets.POSTGRES_PASSWORD_PROD || secrets.POSTGRES_PASSWORD_DEV }}
         ports: ['5432:5432']
         options: >-
           --health-cmd pg_isready
@@ -60,14 +60,17 @@ jobs:
         run: poetry run isort --check-only .
 
       # --- TESTES ---
+      - name: Wait for PostgreSQL
+        run: sleep 15
+
       - name: Run tests
         env:
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
-          DEBUG: ${{ github.ref == 'refs/heads/dev' }}
+          DEBUG: ${{ github.ref_name != 'main' }}
           ALLOWED_HOSTS: ${{ secrets.ALLOWED_HOSTS }}
-          POSTGRES_DB: ${{ github.ref == 'refs/heads/main' && secrets.POSTGRES_DB_PROD || secrets.POSTGRES_DB_DEV }}
-          POSTGRES_USER: ${{ github.ref == 'refs/heads/main' && secrets.POSTGRES_USER_PROD || secrets.POSTGRES_USER_DEV }}
-          POSTGRES_PASSWORD: ${{ github.ref == 'refs/heads/main' && secrets.POSTGRES_PASSWORD_PROD || secrets.POSTGRES_PASSWORD_DEV }}
+          POSTGRES_DB: ${{ github.ref_name == 'main' && secrets.POSTGRES_DB_PROD || secrets.POSTGRES_DB_DEV }}
+          POSTGRES_USER: ${{ github.ref_name == 'main' && secrets.POSTGRES_USER_PROD || secrets.POSTGRES_USER_DEV }}
+          POSTGRES_PASSWORD: ${{ github.ref_name == 'main' && secrets.POSTGRES_PASSWORD_PROD || secrets.POSTGRES_PASSWORD_DEV }}
           POSTGRES_HOST: localhost
           POSTGRES_PORT: 5432
         run: poetry run python manage.py test
@@ -81,29 +84,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Selecionar chave SSH por branch
-        id: ssh-key
-        run: |
-          if [ "${{ github.ref_name }}" = "main" ]; then
-            echo "key=${{ secrets.SSH_PRIVATE_KEY_MAIN }}" >> $GITHUB_OUTPUT
-          else
-            echo "key=${{ secrets.SSH_KEY }}" >> $GITHUB_OUTPUT
-          fi
+      - name: Configure SSH Key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ github.ref_name == 'main' && secrets.SSH_PRIVATE_KEY_MAIN || secrets.SSH_KEY }}
+          known_hosts: ${{ secrets.KNOWN_HOSTS || 'none' }}
 
-      - name: Deploy to server
+      - name: Deploy to Server
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
-          key: ${{ steps.ssh-key.outputs.key }}
+          key: ${{ github.ref_name == 'main' && secrets.SSH_PRIVATE_KEY_MAIN || secrets.SSH_KEY }}
           script: |
             cd Medical_Appointment_Scheduling_API
             git pull origin ${{ github.ref_name }}
-
+            
             if [ "${{ github.ref_name }}" = "main" ]; then
-              DOCKER_COMPOSE_FILE="docker-compose.prod.yml"
+              docker-compose -f docker-compose.prod.yml up --build -d --remove-orphans
             else
-              DOCKER_COMPOSE_FILE="docker-compose.yml"
+              docker-compose -f docker-compose.yml up --build -d --remove-orphans
             fi
-
-            docker-compose -f $DOCKER_COMPOSE_FILE up --build -d --remove-orphans
