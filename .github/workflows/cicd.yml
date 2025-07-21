@@ -93,8 +93,10 @@ jobs:
       - name: Deploy to Server
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
+          # Alterado para usar SSH_HOST_PROD para 'main' e SSH_HOST para 'dev'
+          host: ${{ github.ref_name == 'main' && secrets.SSH_HOST_PROD || secrets.SSH_HOST }}
+          # Alterado para usar SSH_USER_PROD para 'main' e SSH_USER para 'dev'
+          username: ${{ github.ref_name == 'main' && secrets.SSH_USER_PROD || secrets.SSH_USER }}
           key: ${{ github.ref_name == 'main' && secrets.SSH_PRIVATE_KEY_MAIN || secrets.SSH_KEY }}
           script: |
             cd Medical_Appointment_Scheduling_API
