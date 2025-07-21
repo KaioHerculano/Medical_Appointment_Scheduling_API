@@ -17,8 +17,7 @@ Este documento detalha a evolução do desenvolvimento da API de Agendamento e C
 - Poetry configurado e dependências organizadas no `pyproject.toml`.  
 - Ambiente levantado com sucesso via `docker-compose up`.
 
-**Decisões:**  
-✅ Manter a paridade entre desenvolvimento e produção desde o início.  
+**Decisões:** ✅ Manter a paridade entre desenvolvimento e produção desde o início.  
 ✅ Separar ambientes (`.env.dev`, `.env.production`) para facilitar testes e deploy.
 
 ---
@@ -31,8 +30,7 @@ Este documento detalha a evolução do desenvolvimento da API de Agendamento e C
 - Ajustes no `ALLOWED_HOSTS` para incluir o IP público da instância.  
 - Docker configurado para aceitar variáveis via `env_file` no `docker-compose.yml`.
 
-**Desafios e Soluções:**  
-❌ `DisallowedHost` ao acessar pelo navegador → ✅ IP adicionado ao `.env`.  
+**Desafios e Soluções:** ❌ `DisallowedHost` ao acessar pelo navegador → ✅ IP adicionado ao `.env`.  
 ❌ Falha ao copiar `.env.production` no build → ✅ Variáveis passadas via `env_file`.
 
 **Resultado:** Aplicação disponível publicamente com sucesso.
@@ -45,6 +43,7 @@ Este documento detalha a evolução do desenvolvimento da API de Agendamento e C
 - Agendamento de consultas com verificação de disponibilidade.  
 - Endpoint para listar consultas por médico e por paciente.  
 - Middleware de permissões para garantir acesso autorizado.  
+- Autenticação JWT implementada.
 - Documentação Swagger integrada com `drf-spectacular`.
 
 ---
@@ -57,14 +56,13 @@ Este documento detalha a evolução do desenvolvimento da API de Agendamento e C
   - `Lint` (flake8, black, isort)  
   - `Test` (testes automatizados Django)  
   - `Build` da imagem Docker  
-  - `Deploy` automático para ambientes de desenvolvimento e produção
+  - `Deploy` automático para ambientes de desenvolvimento e produção (dev e main)
 
 - Variáveis de ambiente configuradas via GitHub Secrets para maior segurança.  
-- Deploy configurado para usar docker-compose com migrate automático nos containers.  
+- Deploy configurado para usar docker-compose com migrate automático nos containers, diferenciando `docker-compose.yml` para dev e `docker-compose.prod.yml` para produção.
 - Remoção de IPs sensíveis da documentação pública.
 
-**Resultado:**  
-O processo de integração e entrega contínua está padronizado e automatizado, reduzindo erros humanos e acelerando o ciclo de deploy.
+**Resultado:** O processo de integração e e entrega contínua está padronizado e automatizado, com deploy direcionado corretamente para `dev` e `main`, reduzindo erros humanos e acelerando o ciclo de deploy.
 
 ---
 
@@ -77,6 +75,10 @@ O processo de integração e entrega contínua está padronizado e automatizado,
 - **Erro:** `failed to compute cache key: "/.env.production": not found`  
   - **Causa:** `.env` ignorado no build por segurança  
   - **Solução:** Passar variáveis em tempo de execução com `env_file`
+
+- **Erro:** `dial tcp: lookup ***: no such host` durante o deploy via GitHub Actions.
+  - **Causa:** Configuração incorreta do segredo SSH_HOST_PROD/SSH_HOST, que estava recebendo um caminho de chave SSH em vez do endereço IP público ou nome de domínio do servidor. O runner do GitHub Actions não conseguia resolver o "host" fornecido.
+  - **Solução:** Corrigir os segredos no GitHub Actions para que `SSH_HOST_PROD` e `SSH_HOST` contivessem o endereço IP público correto do servidor (ou nome de domínio resolúvel externamente).
 
 ---
 
