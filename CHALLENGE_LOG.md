@@ -6,20 +6,20 @@ Este documento detalha a evolução do desenvolvimento da API de Agendamento e C
 
 ## 🔧 Setup Inicial
 
-- **Framework:** Django REST Framework
-- **Containerização:** Docker e Docker Compose
+- **Framework:** Django REST Framework  
+- **Containerização:** Docker e Docker Compose  
 - **Gerenciador de dependências:** Poetry
 
 ### 🗓️ Dia 1 - Inicialização do Projeto
 
-- Projeto Django criado com estrutura básica para agendamento de consultas e gerenciamento de médicos.
-- Docker e Docker Compose configurados com suporte a PostgreSQL.
-- Poetry configurado e dependências organizadas no `pyproject.toml`.
+- Projeto Django criado com estrutura básica para agendamento de consultas e gerenciamento de médicos.  
+- Docker e Docker Compose configurados com suporte a PostgreSQL.  
+- Poetry configurado e dependências organizadas no `pyproject.toml`.  
 - Ambiente levantado com sucesso via `docker-compose up`.
 
 **Decisões:**  
 ✅ Manter a paridade entre desenvolvimento e produção desde o início.  
-✅ Separar ambientes (`.env.dev`, `.env.prod`) para facilitar testes e deploy.
+✅ Separar ambientes (`.env.dev`, `.env.production`) para facilitar testes e deploy.
 
 ---
 
@@ -27,8 +27,8 @@ Este documento detalha a evolução do desenvolvimento da API de Agendamento e C
 
 ### 🗓️ Dia 2 - Primeira Subida na EC2
 
-- Deploy realizado manualmente em instância Ubuntu (EC2).
-- Ajustes no `ALLOWED_HOSTS` para incluir o IP público da instância.
+- Deploy realizado manualmente em instância Ubuntu (EC2).  
+- Ajustes no `ALLOWED_HOSTS` para incluir o IP público da instância.  
 - Docker configurado para aceitar variáveis via `env_file` no `docker-compose.yml`.
 
 **Desafios e Soluções:**  
@@ -41,10 +41,10 @@ Este documento detalha a evolução do desenvolvimento da API de Agendamento e C
 
 ## ⚙️ Funcionalidades Implementadas
 
-- CRUD de médicos e pacientes.
-- Agendamento de consultas com verificação de disponibilidade.
-- Endpoint para listar consultas por médico e por paciente.
-- Middleware de permissões para garantir acesso autorizado.
+- CRUD de médicos e pacientes.  
+- Agendamento de consultas com verificação de disponibilidade.  
+- Endpoint para listar consultas por médico e por paciente.  
+- Middleware de permissões para garantir acesso autorizado.  
 - Documentação Swagger integrada com `drf-spectacular`.
 
 ---
@@ -53,38 +53,37 @@ Este documento detalha a evolução do desenvolvimento da API de Agendamento e C
 
 ### 🗓️ Dia 3 - CI/CD e Documentação
 
-- Estrutura inicial de pipeline com GitHub Actions:
-  - `Lint`
-  - `Test`
-  - `Build`
-  - (Futura etapa de Deploy)
-- Criação do `README.md` como ponto central de instruções e decisões.
+- Estrutura inicial de pipeline com GitHub Actions criada para:  
+  - `Lint` (flake8, black, isort)  
+  - `Test` (testes automatizados Django)  
+  - `Build` da imagem Docker  
+  - `Deploy` automático para ambientes de desenvolvimento e produção
+
+- Variáveis de ambiente configuradas via GitHub Secrets para maior segurança.  
+- Deploy configurado para usar docker-compose com migrate automático nos containers.  
 - Remoção de IPs sensíveis da documentação pública.
 
-**Melhorias Visadas:**  
-🚧 Finalizar CI/CD com deploy automático na AWS.  
-🚧 Configurar domínio com HTTPS via Let's Encrypt.  
-🚧 Criar ambiente staging com subdomínio (`dev-api` etc).
+**Resultado:**  
+O processo de integração e entrega contínua está padronizado e automatizado, reduzindo erros humanos e acelerando o ciclo de deploy.
 
 ---
 
 ## 🐞 Problemas Notáveis
 
-- **Erro:** `DisallowedHost: Invalid HTTP_HOST header`
-  - **Causa:** IP não listado no `ALLOWED_HOSTS`
+- **Erro:** `DisallowedHost: Invalid HTTP_HOST header`  
+  - **Causa:** IP não listado no `ALLOWED_HOSTS`  
   - **Solução:** Inserir IP no `.env`
 
-- **Erro:** `failed to compute cache key: "/.env.production": not found`
-  - **Causa:** `.env` ignorado no build por segurança
+- **Erro:** `failed to compute cache key: "/.env.production": not found`  
+  - **Causa:** `.env` ignorado no build por segurança  
   - **Solução:** Passar variáveis em tempo de execução com `env_file`
 
 ---
 
 ## 🧭 Próximos Passos
 
-- [ ] Automatizar pipeline de CI/CD até produção
-- [ ] Configurar HTTPS com Nginx + Let's Encrypt
-- [ ] Migrar PostgreSQL para Amazon RDS
-- [ ] Implementar testes automatizados com cobertura
+- [x] Automatizar pipeline de CI/CD até produção  
+- [ ] Configurar HTTPS com Nginx + Let's Encrypt  
+- [ ] Migrar PostgreSQL para Amazon RDS  
+- [ ] Implementar testes automatizados com cobertura  
 - [ ] Auditar segurança da API com ferramentas como OWASP ZAP
-
