@@ -84,7 +84,7 @@ jobs:
       - name: Selecionar chave SSH por branch
         id: ssh-key
         run: |
-          if [ "${GITHUB_REF##*/}" = "main" ]; then
+          if [ "${{ github.ref_name }}" = "main" ]; then
             echo "key=${{ secrets.SSH_PRIVATE_KEY_MAIN }}" >> $GITHUB_OUTPUT
           else
             echo "key=${{ secrets.SSH_KEY }}" >> $GITHUB_OUTPUT
