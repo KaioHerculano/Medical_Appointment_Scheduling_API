@@ -18,7 +18,8 @@ class Consultation(models.Model):
     patient_phone = models.CharField(
         "Telefone do Paciente", max_length=20, blank=True, null=True
     )
-    date = models.DateTimeField("Data e Hora da Consulta")
+    start_datetime = models.DateTimeField(blank=True, null=True)
+    end_datetime = models.DateTimeField(blank=True, null=True)
     symptoms_description = models.TextField("Descrição dos Sintomas")
     notes = models.TextField("Observações Adicionais", blank=True, null=True)
     status = models.CharField(
@@ -28,7 +29,7 @@ class Consultation(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ["-date"]
+        ordering = ["start_datetime"]
         verbose_name = "Consulta"
         verbose_name_plural = "Consultas"
 

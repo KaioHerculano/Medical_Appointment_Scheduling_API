@@ -2,4 +2,5 @@ __pycache__
 venv
 .env.production
 .env.dev
+staticfiles
 db.sqlite3
