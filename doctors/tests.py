@@ -8,7 +8,6 @@ from .models import Doctor
 
 
 class DoctorAPITestCase(APITestCase):
-
     def setUp(self):
         self.user = User.objects.create_user(
             username="testuser", password="testpass123"
