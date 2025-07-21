@@ -5,22 +5,53 @@ on:
     branches: [dev, main]
 
 jobs:
-  lint:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
+      - name: Cache Poetry dependencies
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: v1-poetry-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            v1-poetry-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-
+
       - name: Install Poetry
-        run: pip install poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.8.2
+          virtualenvs-create: true
+          virtualenvs-in-project: true
 
       - name: Install dependencies
-        run: poetry install
+        run: poetry install --no-interaction --no-root
 
+      # --- DEFINIR VARIÁVEIS DE BANCO CONFORME A BRANCH ---
+      - name: Selecionar secrets do banco por branch
+        id: db-env
+        run: |
+          if [ "${GITHUB_REF##*/}" = "main" ]; then
+            echo "POSTGRES_DB=${{ secrets.POSTGRES_DB_PROD }}" >> $GITHUB_OUTPUT
+            echo "POSTGRES_USER=${{ secrets.POSTGRES_USER_PROD }}" >> $GITHUB_OUTPUT
+            echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD_PROD }}" >> $GITHUB_OUTPUT
+          else
+            echo "POSTGRES_DB=${{ secrets.POSTGRES_DB_DEV }}" >> $GITHUB_OUTPUT
+            echo "POSTGRES_USER=${{ secrets.POSTGRES_USER_DEV }}" >> $GITHUB_OUTPUT
+            echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD_DEV }}" >> $GITHUB_OUTPUT
+          fi
+
+      # --- LINTING ---
       - name: Run flake8
-        run: poetry run flake8 .
+        run: poetry run flake8 app/ authentication/ consultations/ doctors/
 
       - name: Run black
         run: poetry run black --check .
@@ -28,15 +59,26 @@ jobs:
       - name: Run isort
         run: poetry run isort --check-only .
 
-  test:
-    runs-on: ubuntu-latest
+      # --- TESTES ---
+      - name: Run tests
+        env:
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          DEBUG: ${{ github.ref == 'refs/heads/dev' }}
+          ALLOWED_HOSTS: ${{ secrets.ALLOWED_HOSTS }}
+          POSTGRES_DB: ${{ steps.db-env.outputs.POSTGRES_DB }}
+          POSTGRES_USER: ${{ steps.db-env.outputs.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ steps.db-env.outputs.POSTGRES_PASSWORD }}
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+        run: poetry run python manage.py test
+
     services:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ steps.db-env.outputs.POSTGRES_DB }}
+          POSTGRES_USER: ${{ steps.db-env.outputs.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ steps.db-env.outputs.POSTGRES_PASSWORD }}
         ports: ['5432:5432']
         options: >-
           --health-cmd pg_isready
@@ -44,55 +86,39 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-    env:
-      SECRET_KEY: ${{ secrets.SECRET_KEY }}
-      DEBUG: ${{ github.ref == 'refs/heads/dev' && 'True' || 'False' }}
-      ALLOWED_HOSTS: ${{ secrets.ALLOWED_HOSTS }}
-      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-      POSTGRES_HOST: localhost
-      POSTGRES_PORT: 5432
-      DATABASE_URL: postgres://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432/${{ secrets.POSTGRES_DB }}
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install Poetry
-        run: pip install poetry
-
-      - name: Install dependencies
-        run: poetry install
-
-      - name: Run tests (without migrate, assuming docker-compose handles it)
-        run: poetry run python manage.py test
-
   deploy:
-    needs: test
+    needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
 
-    env:
-      SSH_HOST: ${{ secrets.SSH_HOST }}
-      SSH_USER: ${{ secrets.SSH_USER }}
-      SSH_KEY: ${{ secrets.SSH_KEY }}
-
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Deploy to server
+      # Define a chave SSH correta conforme a branch
+      - name: Selecionar chave SSH
+        id: ssh-key
         run: |
-          echo "$SSH_KEY" > key.pem
-          chmod 600 key.pem
-
-          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            DOCKER_COMPOSE_FILE="docker-compose.prod.yml"
+          if [ "${GITHUB_REF##*/}" = "main" ]; then
+            echo "key=${{ secrets.SSH_PRIVATE_KEY_MAIN }}" >> $GITHUB_OUTPUT
           else
-            DOCKER_COMPOSE_FILE="docker-compose.dev.yml"
+            echo "key=${{ secrets.SSH_KEY }}" >> $GITHUB_OUTPUT
           fi
 
-          ssh -i "medical_chave.pem" ubuntu@ec2-54-90-85-123.compute-1.amazonaws.com
+      - name: Deploy to server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ steps.ssh-key.outputs.key }}
+          script: |
+            cd Medical_Appointment_Scheduling_API
+            git pull origin ${{ github.ref_name }}
+
+            if [ "${{ github.ref_name }}" = "main" ]; then
+              DOCKER_COMPOSE_FILE="docker-compose.prod.yml"
+            else
+              DOCKER_COMPOSE_FILE="docker-compose.yml"
+            fi
+
+            docker-compose -f $DOCKER_COMPOSE_FILE up --build -d --remove-orphans
