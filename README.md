@@ -10,6 +10,33 @@ API desenvolvida com Django e Django Rest Framework para gestão de doutores e a
 - Busca de consultas por médico.
 - Ambiente totalmente containerizado com Docker para desenvolvimento e produção.
 
+## 🚀 Endpoints da API
+
+A API está disponível em `http://localhost:8000/api/v1/` quando rodada localmente.
+Para ambientes de deploy (staging/produção), utilize o domínio correspondente.
+
+### Autenticação (Token JWT)
+- `POST /api/v1/authentication/token/` - Obter token de acesso e refresh
+- `POST /api/v1/authentication/token/refresh/` - Renovar token de acesso
+- `POST /api/v1/authentication/token/verify/` - Verificar validade do token
+
+### Médicos
+- `GET /api/v1/doctors/` - Listar todos os médicos
+- `POST /api/v1/doctors/` - Criar um novo médico
+- `GET /api/v1/doctors/{id}/` - Obter detalhes de um médico específico
+- `PUT /api/v1/doctors/{id}/` - Atualizar todos os campos de um médico
+- `PATCH /api/v1/doctors/{id}/` - Atualizar parcialmente um médico
+- `DELETE /api/v1/doctors/{id}/` - Excluir um médico
+
+### Consultas
+- `GET /api/v1/consultations/` - Listar todas as consultas
+- `POST /api/v1/consultations/` - Criar uma nova consulta
+- `GET /api/v1/consultations/{id}/` - Obter detalhes de uma consulta específica
+- `PUT /api/v1/consultations/{id}/` - Atualizar todos os campos de uma consulta
+- `PATCH /api/v1/consultations/{id}/` - Atualizar parcialmente uma consulta
+- `DELETE /api/v1/consultations/{id}/` - Excluir uma consulta
+- `GET /api/v1/consultations/doctor/{doctor_id}/` - Listar consultas de um médico específico
+
 ## 🛠️ Tecnologias Utilizadas
 
 - **Backend:** Python 3.11, Django 5.2, Django REST Framework
