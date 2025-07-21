@@ -90,6 +90,10 @@ jobs:
           key: ${{ github.ref_name == 'main' && secrets.SSH_PRIVATE_KEY_MAIN || secrets.SSH_KEY }}
           known_hosts: ${{ secrets.KNOWN_HOSTS || 'none' }}
 
+      - name: Debug SSH Host Value # PASSO TEMPORÁRIO PARA DEPURAR - REMOVA APÓS CORRIGIR O PROBLEMA
+        run: |
+          echo "Attempting to connect to host: '${{ github.ref_name == 'main' && secrets.SSH_HOST_PROD || secrets.SSH_HOST }}'"
+
       - name: Deploy to Server
         uses: appleboy/ssh-action@master
         with:
