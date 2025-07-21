@@ -17,7 +17,6 @@ class ConsultationAPITestCase(APITestCase):
         self.user = User.objects.create_user(
             username="testuser", password="testpass123"
         )
-
         permissions = Permission.objects.filter(
             codename__in=[
                 "view_consultation",
@@ -46,11 +45,13 @@ class ConsultationAPITestCase(APITestCase):
             status="active",
         )
 
-        aware_start = timezone.make_aware(datetime.datetime(2025, 7, 20, 10, 0, 0))
+        aware_start = timezone.now() + datetime.timedelta(days=1, hours=1)
+        aware_end = aware_start + datetime.timedelta(hours=1)
         self.consultation = Consultation.objects.create(
             patient_name="Paciente Teste",
             doctor=self.doctor,
             start_datetime=aware_start,
+            end_datetime=aware_end,
             symptoms_description="Sintomas iniciais",
             status="scheduled",
             notes="Consulta inicial",
@@ -64,10 +65,13 @@ class ConsultationAPITestCase(APITestCase):
 
     def test_create_consultation(self):
         url = reverse("consultation-list-create")
+        start_dt = timezone.now() + datetime.timedelta(days=2)
+        end_dt = start_dt + datetime.timedelta(hours=1)
         data = {
             "doctor": self.doctor.id,
             "patient_name": "Novo Paciente",
-            "start_datetime": "2025-07-18T14:00:00Z",
+            "start_datetime": start_dt.isoformat(),
+            "end_datetime": end_dt.isoformat(),
             "symptoms_description": "Sintomas de teste",
         }
         response = self.client.post(url, data, format="json")
@@ -88,10 +92,13 @@ class ConsultationAPITestCase(APITestCase):
 
     def test_update_consultation(self):
         url = reverse("consultation-detail-view", kwargs={"pk": self.consultation.id})
+        start_dt = timezone.now() + datetime.timedelta(days=3)
+        end_dt = start_dt + datetime.timedelta(hours=1)
         data = {
             "doctor": self.doctor.id,
             "patient_name": "Paciente Atualizado",
-            "start_datetime": self.consultation.start_datetime.isoformat(),
+            "start_datetime": start_dt.isoformat(),
+            "end_datetime": end_dt.isoformat(),
             "symptoms_description": "Sintomas atualizados",
             "status": "completed",
         }
