@@ -35,7 +35,6 @@ jobs:
       - name: Install dependencies
         run: poetry install --no-interaction --no-root
 
-      # --- DEFINIR VARIÁVEIS DE BANCO CONFORME A BRANCH ---
       - name: Selecionar secrets do banco por branch
         id: db-env
         run: |
@@ -81,10 +80,10 @@ jobs:
           POSTGRES_PASSWORD: ${{ steps.db-env.outputs.POSTGRES_PASSWORD }}
         ports: ['5432:5432']
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U $POSTGRES_USER"
           --health-interval 10s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 10
 
   deploy:
     needs: build
@@ -95,8 +94,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Define a chave SSH correta conforme a branch
-      - name: Selecionar chave SSH
+      - name: Selecionar chave SSH por branch
         id: ssh-key
         run: |
           if [ "${GITHUB_REF##*/}" = "main" ]; then
