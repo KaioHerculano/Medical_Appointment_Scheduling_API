@@ -9,29 +9,83 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('doctors', '0002_doctor_created_at_doctor_updated_at'),
+        ("doctors", "0002_doctor_created_at_doctor_updated_at"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Consultation',
+            name="Consultation",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('patient_name', models.CharField(max_length=100, verbose_name='Nome do Paciente')),
-                ('patient_email', models.EmailField(blank=True, max_length=254, null=True, verbose_name='E-mail do Paciente')),
-                ('patient_phone', models.CharField(blank=True, max_length=20, null=True, verbose_name='Telefone do Paciente')),
-                ('date', models.DateTimeField(verbose_name='Data e Hora da Consulta')),
-                ('symptoms_description', models.TextField(verbose_name='Descrição dos Sintomas')),
-                ('notes', models.TextField(blank=True, null=True, verbose_name='Observações Adicionais')),
-                ('status', models.CharField(choices=[('scheduled', 'Agendada'), ('completed', 'Concluída'), ('canceled', 'Cancelada')], default='scheduled', max_length=10, verbose_name='Status')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('doctor', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='consultations', to='doctors.doctor')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "patient_name",
+                    models.CharField(max_length=100, verbose_name="Nome do Paciente"),
+                ),
+                (
+                    "patient_email",
+                    models.EmailField(
+                        blank=True,
+                        max_length=254,
+                        null=True,
+                        verbose_name="E-mail do Paciente",
+                    ),
+                ),
+                (
+                    "patient_phone",
+                    models.CharField(
+                        blank=True,
+                        max_length=20,
+                        null=True,
+                        verbose_name="Telefone do Paciente",
+                    ),
+                ),
+                ("date", models.DateTimeField(verbose_name="Data e Hora da Consulta")),
+                (
+                    "symptoms_description",
+                    models.TextField(verbose_name="Descrição dos Sintomas"),
+                ),
+                (
+                    "notes",
+                    models.TextField(
+                        blank=True, null=True, verbose_name="Observações Adicionais"
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("scheduled", "Agendada"),
+                            ("completed", "Concluída"),
+                            ("canceled", "Cancelada"),
+                        ],
+                        default="scheduled",
+                        max_length=10,
+                        verbose_name="Status",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "doctor",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="consultations",
+                        to="doctors.doctor",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Consulta',
-                'verbose_name_plural': 'Consultas',
-                'ordering': ['-date'],
+                "verbose_name": "Consulta",
+                "verbose_name_plural": "Consultas",
+                "ordering": ["-date"],
             },
         ),
     ]
