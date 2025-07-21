@@ -78,6 +78,7 @@ Para um registro detalhado dos erros encontrados, decisões tomadas e melhorias 
 
 ## 📜 Licença
 
+
 Este projeto está licenciado sob a Licença MIT.
 
 ## 👨‍💻 Autor
