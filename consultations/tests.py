@@ -46,11 +46,11 @@ class ConsultationAPITestCase(APITestCase):
             status="active",
         )
 
-        aware_date = timezone.make_aware(datetime.datetime(2025, 7, 20, 10, 0, 0))
+        aware_start = timezone.make_aware(datetime.datetime(2025, 7, 20, 10, 0, 0))
         self.consultation = Consultation.objects.create(
             patient_name="Paciente Teste",
             doctor=self.doctor,
-            date=aware_date,
+            start_datetime=aware_start,
             symptoms_description="Sintomas iniciais",
             status="scheduled",
             notes="Consulta inicial",
@@ -67,7 +67,7 @@ class ConsultationAPITestCase(APITestCase):
         data = {
             "doctor": self.doctor.id,
             "patient_name": "Novo Paciente",
-            "date": "2025-07-18T14:00:00Z",
+            "start_datetime": "2025-07-18T14:00:00Z",
             "symptoms_description": "Sintomas de teste",
         }
         response = self.client.post(url, data, format="json")
@@ -91,7 +91,7 @@ class ConsultationAPITestCase(APITestCase):
         data = {
             "doctor": self.doctor.id,
             "patient_name": "Paciente Atualizado",
-            "date": self.consultation.date.isoformat(),
+            "start_datetime": self.consultation.start_datetime.isoformat(),
             "symptoms_description": "Sintomas atualizados",
             "status": "completed",
         }
