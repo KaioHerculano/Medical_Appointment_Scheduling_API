@@ -66,7 +66,6 @@ class ConsultationAPITestCase(APITestCase):
     def test_create_consultation(self):
         url = reverse("consultation-list-create")
         start_dt = timezone.now() + datetime.timedelta(days=2)
-        end_dt = start_dt + datetime.timedelta(hours=1)
         data = {
             "doctor": self.doctor.id,
             "patient_name": "Novo Paciente",
