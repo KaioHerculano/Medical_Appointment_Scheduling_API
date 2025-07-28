@@ -16,7 +16,7 @@ class Consultation(models.Model):
     patient_name = models.CharField("Nome do Paciente", max_length=100)
     patient_email = models.EmailField("E-mail do Paciente", blank=True, null=True)
     patient_phone = models.CharField(
-        "Telefone do Paciente", max_length=20, blank=True, null=True
+        "Telefone do Paciente", max_length=15, blank=True, null=True
     )
     start_datetime = models.DateTimeField(blank=True, null=True)
     end_datetime = models.DateTimeField(blank=True, null=True)
