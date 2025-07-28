@@ -38,11 +38,11 @@ class Doctor(models.Model):
     ]
 
     name = models.CharField(max_length=100)
-    cpf = models.CharField(max_length=14, unique=True)
+    cpf = models.CharField(max_length=11, unique=True)
     crm_number = models.CharField(max_length=15)
     crm_state = models.CharField(max_length=2, choices=CRM_STATE_CHOICES)
     specialty = models.CharField(max_length=100)
-    phone = models.CharField(max_length=20)
+    phone = models.CharField(max_length=15)
     email = models.EmailField()
     address = models.CharField(max_length=200)
     date_of_birth = models.DateField()

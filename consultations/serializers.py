@@ -3,7 +3,8 @@ from datetime import datetime
 from django.utils import timezone
 from rest_framework import serializers
 
-from .fields import PhoneField
+from core.fields import PhoneField
+
 from .models import Consultation
 
 
