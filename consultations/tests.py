@@ -70,8 +70,10 @@ class ConsultationAPITestCase(APITestCase):
         data = {
             "doctor": self.doctor.id,
             "patient_name": "Novo Paciente",
-            "start_datetime": start_dt.isoformat(),
-            "end_datetime": end_dt.isoformat(),
+            "start_date": "2025-07-28",
+            "start_time": "19:55",
+            "end_date": "2025-07-28",
+            "end_time": "20:55",
             "symptoms_description": "Sintomas de teste",
         }
         response = self.client.post(url, data, format="json")
@@ -97,12 +99,15 @@ class ConsultationAPITestCase(APITestCase):
         data = {
             "doctor": self.doctor.id,
             "patient_name": "Paciente Atualizado",
-            "start_datetime": start_dt.isoformat(),
-            "end_datetime": end_dt.isoformat(),
             "symptoms_description": "Sintomas atualizados",
             "status": "completed",
+            "start_date": start_dt.strftime("%Y-%m-%d"),
+            "start_time": start_dt.strftime("%H:%M"),
+            "end_date": end_dt.strftime("%Y-%m-%d"),
+            "end_time": end_dt.strftime("%H:%M"),
         }
-        response = self.client.put(url, data, format="json")
+
+        response = self.client.patch(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.consultation.refresh_from_db()
         self.assertEqual(self.consultation.patient_name, "Paciente Atualizado")
