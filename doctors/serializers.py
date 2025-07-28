@@ -1,11 +1,13 @@
+import re
+from datetime import date
+
+from dateutil.relativedelta import relativedelta
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-from datetime import date
-from dateutil.relativedelta import relativedelta
-import re
+
+from core.fields import CPFField, PhoneField
 
 from .models import Doctor
-from core.fields import CPFField, PhoneField
 
 
 class DoctorSerializer(serializers.ModelSerializer):
