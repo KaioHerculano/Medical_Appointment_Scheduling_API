@@ -34,7 +34,7 @@ class ConsultationAPITestCase(APITestCase):
 
         self.doctor = Doctor.objects.create(
             name="Dr. Teste",
-            cpf="123.456.789-00",
+            cpf="04281554645",
             crm_number="123456",
             crm_state="SP",
             specialty="Cardiology",
@@ -65,15 +65,21 @@ class ConsultationAPITestCase(APITestCase):
 
     def test_create_consultation(self):
         url = reverse("consultation-list-create")
+
+        # Criar para duas horas depois da primeira consulta
+        start_dt = self.consultation.end_datetime + datetime.timedelta(hours=1)
+        end_dt = start_dt + datetime.timedelta(hours=1)
+
         data = {
             "doctor": self.doctor.id,
             "patient_name": "Novo Paciente",
-            "start_date": "2025-07-28",
-            "start_time": "19:55",
-            "end_date": "2025-07-28",
-            "end_time": "20:55",
+            "start_date": start_dt.strftime("%Y-%m-%d"),
+            "start_time": start_dt.strftime("%H:%M"),
+            "end_date": end_dt.strftime("%Y-%m-%d"),
+            "end_time": end_dt.strftime("%H:%M"),
             "symptoms_description": "Sintomas de teste",
         }
+
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(
@@ -99,10 +105,8 @@ class ConsultationAPITestCase(APITestCase):
             "patient_name": "Paciente Atualizado",
             "symptoms_description": "Sintomas atualizados",
             "status": "completed",
-            "start_date": start_dt.strftime("%Y-%m-%d"),
-            "start_time": start_dt.strftime("%H:%M"),
-            "end_date": end_dt.strftime("%Y-%m-%d"),
-            "end_time": end_dt.strftime("%H:%M"),
+            "start_datetime": start_dt.isoformat(),
+            "end_datetime": end_dt.isoformat(),
         }
 
         response = self.client.patch(url, data, format="json")
