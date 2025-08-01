@@ -60,6 +60,7 @@ O projeto é projetado para ser executado com Docker, garantindo consistência e
 ### Passos para Execução
 
 1.  **Clone o repositório:**
+
     ```bash
     git clone https://github.com/KaioHerculano/Medical_Appointment_Scheduling_API.git
     cd Medical_Appointment_Scheduling_API
@@ -67,13 +68,16 @@ O projeto é projetado para ser executado com Docker, garantindo consistência e
 
 2.  **Configure o Ambiente:**
     * **Para usar PostgreSQL (padrão):** Copie o arquivo de configuração de desenvolvimento. As variáveis neste arquivo já estão configuradas para o serviço do PostgreSQL no `docker-compose`.
+
         ```bash
         cp .env.dev .env
         ```
+
     * **(Opcional) Para usar SQLite:** Se desejar rodar com um banco de dados `db.sqlite3` local, você precisará alterar o arquivo `settings.py` para que o Django utilize a configuração de banco de dados nomeada `'dev'`.
 
 3.  **Inicie a Aplicação:**
     O script de `entrypoint` irá executar as migrações do banco de dados (PostgreSQL ou SQLite, dependendo da sua configuração) automaticamente.
+
     ```bash
     docker-compose up -d --build
     ```
@@ -81,6 +85,7 @@ O projeto é projetado para ser executado com Docker, garantindo consistência e
 
 4.  **Crie um Superusuário (Opcional):**
     Este comando permite criar um usuário administrador para acessar o Django Admin.
+
     ```bash
     docker-compose exec web python manage.py createsuperuser
     ```
