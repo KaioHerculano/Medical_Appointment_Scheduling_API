@@ -1,6 +1,6 @@
 # Medical Appointment Scheduling API
 
-API desenvolvida com Django e Django Rest Framework para gestão de doutores e agendamento de consultas médicas.
+API desenvolvida com Django e Django Rest Framework para gestão de doutores e agendamento de consultas médicas (desafio técnico Lacrei-Saúde).
 
 ## ✨ Features
 
@@ -118,7 +118,7 @@ Este projeto utiliza **GitHub Actions** para automatizar o processo de integraç
 
 ## 📝 Histórico do Desafio
 
-Para um registro detalhado dos erros encontrados, decisões tomadas e melhorias propostas durante o desenvolvimento deste projeto, consulte o arquivo [CHALLENGE_LOG.md](CHALLENGE_LOG.md). (Sugestão: crie este arquivo para documentar sua jornada).
+Para um registro detalhado dos erros encontrados, decisões tomadas e melhorias propostas durante o desenvolvimento deste projeto, consulte o arquivo [CHALLENGE_LOG.md](CHALLENGE_LOG.md).
 
 ## 📜 Licença
 
